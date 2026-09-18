@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import GlitchMasthead from './components/GlitchMasthead'
 
 const articles = [
   {
@@ -84,9 +85,7 @@ export default function Home() {
 
       {/* Masthead */}
       <div style={{ borderBottom: '1px solid #0a0a0a', paddingBottom: '1.25rem', marginBottom: '0' }}>
-        <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '56px', letterSpacing: '-0.04em', lineHeight: 1 }}>
-          2ND
-        </div>
+        <GlitchMasthead />
         <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '11px', fontWeight: 500, color: '#666', display: 'flex', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
           {['Politics', 'Culture', 'Economics', 'Media', 'About'].map(item => (
             <Link key={item} href={`/${item.toLowerCase()}`} style={{ color: '#666', textDecoration: 'none' }}>{item}</Link>
