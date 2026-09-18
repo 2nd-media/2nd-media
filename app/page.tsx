@@ -1,69 +1,188 @@
-import Image from "next/image";
+import Link from 'next/link'
+
+const articles = [
+  {
+    id: 1,
+    irtLabel: 'In Response To',
+    irtTarget: 'The New York Times',
+    irtOriginal: '"The Economy Is Fine. So Why Does Everyone Feel Terrible?"',
+    headline: "The Vibes Economy Is a Real Thing, and the NYT Still Doesn't Understand It",
+    deck: 'Dismissing consumer pessimism as irrational misses what the data is actually measuring — and who it\'s measuring it for.',
+    author: 'Roman A.',
+    date: 'Sep 18, 2026',
+    category: 'Economics',
+    featured: true,
+  },
+  {
+    id: 2,
+    irtLabel: 'In Response To',
+    irtTarget: 'The Atlantic',
+    irtOriginal: '"The Death of the American City"',
+    headline: 'Cities Didn\'t Die. They Just Stopped Performing for Coastal Media',
+    deck: null,
+    author: 'M. Chen',
+    date: 'Sep 17, 2026',
+    category: 'Culture',
+    featured: true,
+  },
+  {
+    id: 3,
+    irtLabel: 'In Response To',
+    irtTarget: 'Elon Musk',
+    irtOriginal: '"Free speech is the bedrock of a functional democracy"',
+    headline: 'On Free Speech and the People Who Fund It',
+    deck: null,
+    author: 'J. Park',
+    date: 'Sep 16, 2026',
+    category: 'Politics',
+    featured: true,
+  },
+  {
+    id: 4,
+    irtLabel: 'In Response To',
+    irtTarget: 'Wall Street Journal',
+    irtOriginal: '"Return-to-Office Is Winning"',
+    headline: 'Return-to-Office Mandates Are Not About Productivity',
+    deck: 'The Journal\'s defense of RTO policy takes management\'s stated rationale at face value. The actual data tells a different story.',
+    author: 'J. Park',
+    date: 'Sep 15, 2026',
+    category: 'Economics',
+    featured: false,
+  },
+  {
+    id: 5,
+    irtLabel: 'In Response To',
+    irtTarget: 'Vox',
+    irtOriginal: '"Why Harm Reduction Works"',
+    headline: 'Harm Reduction Is Not the Same as Endorsement',
+    deck: 'A thoughtful piece on drug policy that nevertheless conflates two ideas that need to be held apart if the argument is going to work.',
+    author: 'S. Okafor',
+    date: 'Sep 14, 2026',
+    category: 'Politics',
+    featured: false,
+  },
+  {
+    id: 6,
+    irtLabel: 'In Response To',
+    irtTarget: 'The Guardian',
+    irtOriginal: '"AI Will Take Your Job — And That\'s Okay"',
+    headline: 'The "It\'s Okay" Argument for Automation Has Always Been Made by People Whose Jobs Are Safe',
+    deck: 'The history of technological displacement is not a story of smooth transitions. It\'s a story of who absorbs the cost.',
+    author: 'L. Torres',
+    date: 'Sep 13, 2026',
+    category: 'Culture',
+    featured: false,
+  },
+]
+
+const featuredArticles = articles.filter(a => a.featured)
+const latestArticles = articles.filter(a => !a.featured)
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main style={{ paddingTop: '2rem', paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>
+
+      {/* Masthead */}
+      <div style={{ borderBottom: '1px solid #0a0a0a', paddingBottom: '1.25rem', marginBottom: '0' }}>
+        <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '56px', letterSpacing: '-0.04em', lineHeight: 1 }}>
+          2ND
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '11px', fontWeight: 500, color: '#666', display: 'flex', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          {['Politics', 'Culture', 'Economics', 'Media', 'About'].map(item => (
+            <Link key={item} href={`/${item.toLowerCase()}`} style={{ color: '#666', textDecoration: 'none' }}>{item}</Link>
+          ))}
+        </nav>
+      </div>
+
+      {/* Dateline */}
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.6rem 0', borderBottom: '0.5px solid #e0e0e0' }}>
+        Friday, September 18, 2026
+      </div>
+
+      {/* Featured Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', padding: '1.75rem 0', borderBottom: '0.5px solid #e0e0e0' }}>
+
+        {/* Main featured */}
+        <div style={{ borderRight: '0.5px solid #e0e0e0', paddingRight: '2rem' }}>
+          <div>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0a0a0a' }}>
+              {featuredArticles[0].irtLabel}&nbsp;&nbsp;
+            </span>
+            <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '11px', color: '#0a0a0a' }}>
+              {featuredArticles[0].irtTarget}
+            </span>
+            <span style={{ fontFamily: 'var(--font-lora)', fontSize: '12px', fontStyle: 'italic', color: '#666', display: 'block', marginTop: '3px' }}>
+              {featuredArticles[0].irtOriginal}
+            </span>
+          </div>
+          <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '26px', lineHeight: 1.1, color: '#0a0a0a', marginTop: '0.6rem' }}>
+            {featuredArticles[0].headline}
+          </div>
+          <div style={{ fontFamily: 'var(--font-lora)', fontSize: '15px', lineHeight: 1.65, color: '#444', fontStyle: 'italic', marginTop: '0.4rem' }}>
+            {featuredArticles[0].deck}
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', marginTop: '0.6rem' }}>
+            {featuredArticles[0].author} &nbsp;·&nbsp; {featuredArticles[0].date} &nbsp;·&nbsp; {featuredArticles[0].category}
+          </div>
         </div>
-      </main>
-    </div>
-  );
+
+        {/* Secondary featured */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {featuredArticles.slice(1).map((article, i) => (
+            <div key={article.id} style={{ paddingBottom: '1.5rem', borderBottom: i < featuredArticles.slice(1).length - 1 ? '0.5px solid #e0e0e0' : 'none' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0a0a0a' }}>
+                {article.irtLabel}&nbsp;&nbsp;
+              </span>
+              <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '11px', color: '#0a0a0a' }}>
+                {article.irtTarget}
+              </span>
+              <span style={{ fontFamily: 'var(--font-lora)', fontSize: '12px', fontStyle: 'italic', color: '#666', display: 'block', marginTop: '3px' }}>
+                {article.irtOriginal}
+              </span>
+              <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '17px', lineHeight: 1.1, color: '#0a0a0a', marginTop: '0.5rem' }}>
+                {article.headline}
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', marginTop: '0.5rem' }}>
+                {article.author} &nbsp;·&nbsp; {article.date}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Latest divider */}
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0.6rem 0', borderBottom: '0.5px solid #e0e0e0' }}>
+        Latest
+      </div>
+
+      {/* Latest feed */}
+      {latestArticles.map(article => (
+        <div key={article.id} style={{ padding: '1.75rem 0', borderBottom: '0.5px solid #e0e0e0' }}>
+          <div>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0a0a0a' }}>
+              {article.irtLabel}&nbsp;&nbsp;
+            </span>
+            <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '11px', color: '#0a0a0a' }}>
+              {article.irtTarget}
+            </span>
+            <span style={{ fontFamily: 'var(--font-lora)', fontSize: '12px', fontStyle: 'italic', color: '#666', display: 'block', marginTop: '3px' }}>
+              {article.irtOriginal}
+            </span>
+          </div>
+          <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '20px', lineHeight: 1.1, color: '#0a0a0a', marginTop: '0.6rem' }}>
+            {article.headline}
+          </div>
+          {article.deck && (
+            <div style={{ fontFamily: 'var(--font-lora)', fontSize: '14px', lineHeight: 1.65, color: '#444', fontStyle: 'italic', marginTop: '0.4rem' }}>
+              {article.deck}
+            </div>
+          )}
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', marginTop: '0.6rem' }}>
+            {article.author} &nbsp;·&nbsp; {article.date} &nbsp;·&nbsp; {article.category}
+          </div>
+        </div>
+      ))}
+
+    </main>
+  )
 }
