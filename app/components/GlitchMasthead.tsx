@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type MouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
 
 const TEXT = '2ND'
@@ -8,8 +8,8 @@ const FONT = '700 72px "Space Grotesk", sans-serif'
 const TOTAL_FRAMES = 22
 const PAD_X = 40
 const PAD_Y = 24
-const RED = '#ff003c'
-const CYAN = '#00d4ff'
+const TEAR_LIGHT = '#ffffff'
+const TEAR_DARK = '#444444'
 
 export default function GlitchMasthead() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -79,6 +79,7 @@ export default function GlitchMasthead() {
       tmpRef.current = document.createElement('canvas')
 
       drawClean()
+      startGlitch()
     }
 
     setup()
@@ -158,8 +159,8 @@ export default function GlitchMasthead() {
         ctx.globalCompositeOperation = 'lighter'
         ctx.globalAlpha = 0.65
 
-        drawTintedSlice(ctx, off, sy, sliceHeight, shift + tear, RED)
-        drawTintedSlice(ctx, off, sy, sliceHeight, shift - tear, CYAN)
+        drawTintedSlice(ctx, off, sy, sliceHeight, shift + tear, TEAR_LIGHT)
+        drawTintedSlice(ctx, off, sy, sliceHeight, shift - tear, TEAR_DARK)
 
         ctx.globalCompositeOperation = 'source-over'
         ctx.globalAlpha = 1
@@ -218,16 +219,13 @@ export default function GlitchMasthead() {
     rafRef.current = requestAnimationFrame(step)
   }
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!runningRef.current && Math.random() < 0.2) {
-        startGlitch()
-      }
-    }, 3500)
-    return () => clearInterval(interval)
-  }, [])
+  function handleCanvasMouseEnter(e: MouseEvent<HTMLCanvasElement>) {
+    e.stopPropagation()
+    startGlitch()
+  }
 
-  function handleClick() {
+  function handleClick(e: MouseEvent<HTMLCanvasElement>) {
+    e.stopPropagation()
     navigateAfterRef.current = true
     startGlitch()
   }
@@ -235,7 +233,7 @@ export default function GlitchMasthead() {
   return (
     <canvas
       ref={canvasRef}
-      onMouseEnter={startGlitch}
+      onMouseEnter={handleCanvasMouseEnter}
       onClick={handleClick}
       style={{ display: 'block', cursor: 'pointer' }}
       aria-label="2ND"

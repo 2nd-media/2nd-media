@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import GlitchMasthead from './components/GlitchMasthead'
 
@@ -80,29 +83,55 @@ const featuredArticles = articles.filter(a => a.featured)
 const latestArticles = articles.filter(a => !a.featured)
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    let raf2 = 0
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setMounted(true))
+    })
+    return () => {
+      cancelAnimationFrame(raf1)
+      if (raf2) cancelAnimationFrame(raf2)
+    }
+  }, [])
+
+  function animStyle(delayMs: number): CSSProperties {
+    return {
+      opacity: mounted ? 1 : 0,
+      transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+      transitionProperty: 'opacity, transform',
+      transitionDuration: '500ms',
+      transitionTimingFunction: 'ease-out',
+      transitionDelay: `${delayMs}ms`,
+    }
+  }
+
   return (
     <main style={{ paddingTop: '2rem', paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>
 
       {/* Masthead */}
       <div style={{ borderBottom: '1px solid #0a0a0a', paddingBottom: '1.25rem', marginBottom: '0' }}>
-        <GlitchMasthead />
-        <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '11px', fontWeight: 500, color: '#666', display: 'flex', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', ...animStyle(0) }}>
+          <GlitchMasthead />
+        </div>
+        <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '11px', color: '#666', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase', ...animStyle(200) }}>
           {['Politics', 'Culture', 'Economics', 'Media', 'About'].map(item => (
-            <Link key={item} href={`/${item.toLowerCase()}`} style={{ color: '#666', textDecoration: 'none' }}>{item}</Link>
+            <Link key={item} href={`/${item.toLowerCase()}`} className="nav-link" data-text={item} style={{ color: '#666', textDecoration: 'none' }}>{item}</Link>
           ))}
         </nav>
       </div>
 
       {/* Dateline */}
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.6rem 0', borderBottom: '0.5px solid #e0e0e0' }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.6rem 0', borderBottom: '0.5px solid #e0e0e0', ...animStyle(400) }}>
         Friday, September 18, 2026
       </div>
 
       {/* Featured Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', padding: '1.75rem 0', borderBottom: '0.5px solid #e0e0e0' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', padding: '1.75rem 0', borderBottom: '0.5px solid #e0e0e0', ...animStyle(600) }}>
 
         {/* Main featured */}
-        <div style={{ borderRight: '0.5px solid #e0e0e0', paddingRight: '2rem' }}>
+        <div style={{ borderRight: '0.5px solid #e0e0e0', paddingRight: '2rem', ...animStyle(600) }}>
           <div>
             <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0a0a0a' }}>
               {featuredArticles[0].irtLabel}&nbsp;&nbsp;
@@ -128,7 +157,7 @@ export default function Home() {
         {/* Secondary featured */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {featuredArticles.slice(1).map((article, i) => (
-            <div key={article.id} style={{ paddingBottom: '1.5rem', borderBottom: i < featuredArticles.slice(1).length - 1 ? '0.5px solid #e0e0e0' : 'none' }}>
+            <div key={article.id} style={{ paddingBottom: '1.5rem', borderBottom: i < featuredArticles.slice(1).length - 1 ? '0.5px solid #e0e0e0' : 'none', ...animStyle(600 + (i + 1) * 100) }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0a0a0a' }}>
                 {article.irtLabel}&nbsp;&nbsp;
               </span>
@@ -150,13 +179,13 @@ export default function Home() {
       </div>
 
       {/* Latest divider */}
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0.6rem 0', borderBottom: '0.5px solid #e0e0e0' }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0.6rem 0', borderBottom: '0.5px solid #e0e0e0', ...animStyle(700) }}>
         Latest
       </div>
 
       {/* Latest feed */}
-      {latestArticles.map(article => (
-        <div key={article.id} style={{ padding: '1.75rem 0', borderBottom: '0.5px solid #e0e0e0' }}>
+      {latestArticles.map((article, i) => (
+        <div key={article.id} style={{ padding: '1.75rem 0', borderBottom: '0.5px solid #e0e0e0', ...animStyle(800 + i * 100) }}>
           <div>
             <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0a0a0a' }}>
               {article.irtLabel}&nbsp;&nbsp;

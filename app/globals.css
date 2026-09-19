@@ -21,3 +21,23 @@ body {
   color: #0a0a0a;
   -webkit-font-smoothing: antialiased;
 }
+
+.nav-link {
+  position: relative;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.nav-link::after {
+  content: attr(data-text);
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.nav-link:hover {
+  font-weight: 700;
+}
