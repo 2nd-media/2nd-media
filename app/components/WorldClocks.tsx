@@ -3,13 +3,20 @@
 import { useEffect, useState } from 'react'
 
 const ZONES = [
-  { label: 'PACIFIC', timeZone: 'America/Los_Angeles' },
-  { label: 'MOUNTAIN', timeZone: 'America/Denver' },
-  { label: 'CENTRAL', timeZone: 'America/Chicago' },
-  { label: 'EASTERN', timeZone: 'America/New_York' },
+  { label: 'PACIFIC', shortLabel: 'PT', timeZone: 'America/Los_Angeles' },
+  { label: 'MOUNTAIN', shortLabel: 'MT', timeZone: 'America/Denver' },
+  { label: 'CENTRAL', shortLabel: 'CT', timeZone: 'America/Chicago' },
+  { label: 'EASTERN', shortLabel: 'ET', timeZone: 'America/New_York' },
 ]
 
 const DATE_ZONE = 'America/Los_Angeles'
+
+// Below this, four full zone names ("MOUNTAIN", etc.) can't fit on one line
+// even at the smallest legible font — short codes buy back enough width.
+const NARROW_BREAKPOINT_PX = 600
+// Below this, even four short codes plus milliseconds still overflow at the
+// clamp() floor sizes — dropping the ms field is what actually closes the gap.
+const COMPACT_BREAKPOINT_PX = 500
 
 function formatZoneTime(date: Date, timeZone: string) {
   let str = date.toLocaleString('en-US', {
@@ -52,6 +59,25 @@ export default function WorldClocks() {
   // the live clock — same server/client-safe pattern used elsewhere here.
   const [now, setNow] = useState<Date | null>(null)
   const [msDigits, setMsDigits] = useState<string[]>(() => ZONES.map(() => '000'))
+  const [isNarrow, setIsNarrow] = useState(false)
+  const [isCompact, setIsCompact] = useState(false)
+
+  useEffect(() => {
+    const narrowMql = window.matchMedia(`(max-width: ${NARROW_BREAKPOINT_PX}px)`)
+    const updateNarrow = () => setIsNarrow(narrowMql.matches)
+    updateNarrow()
+    narrowMql.addEventListener('change', updateNarrow)
+
+    const compactMql = window.matchMedia(`(max-width: ${COMPACT_BREAKPOINT_PX}px)`)
+    const updateCompact = () => setIsCompact(compactMql.matches)
+    updateCompact()
+    compactMql.addEventListener('change', updateCompact)
+
+    return () => {
+      narrowMql.removeEventListener('change', updateNarrow)
+      compactMql.removeEventListener('change', updateCompact)
+    }
+  }, [])
 
   useEffect(() => {
     // Date() is unknown at SSR time, so this is set after mount, not derived
@@ -82,27 +108,29 @@ export default function WorldClocks() {
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
         {now ? formatReferenceDate(now) : ' '}
       </div>
-      <div style={{ display: 'flex', flexWrap: 'nowrap', justifyContent: 'center', gap: 'clamp(0.75rem, 3vw, 1.5rem)', marginTop: '0.4rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'nowrap', justifyContent: 'center', gap: isCompact ? '0.4rem' : 'clamp(0.75rem, 3vw, 1.5rem)', marginTop: '0.4rem' }}>
         {ZONES.map((zone, i) => (
           <div
             key={zone.timeZone}
             style={{
               display: 'flex',
               alignItems: 'baseline',
-              gap: '6px',
+              gap: isCompact ? '4px' : '6px',
               minWidth: 0,
-              paddingLeft: i > 0 ? 'clamp(0.5rem, 2vw, 1.25rem)' : 0,
+              paddingLeft: i > 0 ? (isCompact ? '0.35rem' : 'clamp(0.5rem, 2vw, 1.25rem)') : 0,
               borderLeft: i > 0 ? '1px solid var(--color-border)' : 'none',
             }}
           >
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 'clamp(14px, 2vw, 18px)', color: 'var(--color-text-primary)' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: isCompact ? '13px' : 'clamp(14px, 2vw, 18px)', color: 'var(--color-text-primary)' }}>
               {now ? formatZoneTime(now, zone.timeZone) : '00:00:00'}
             </span>
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 400, fontSize: '12px', color: 'var(--color-text-muted)' }}>
-              .{msDigits[i]}
-            </span>
+            {!isCompact && (
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 400, fontSize: 'clamp(9px, 1.2vw, 12px)', color: 'var(--color-text-muted)' }}>
+                .{msDigits[i]}
+              </span>
+            )}
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(7px, 1vw, 9px)', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
-              {zone.label}
+              {isNarrow ? zone.shortLabel : zone.label}
             </span>
           </div>
         ))}
