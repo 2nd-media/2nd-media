@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import GlitchMasthead from './components/GlitchMasthead'
 import ScrambleText from './components/ScrambleText'
@@ -88,6 +88,24 @@ export default function Home() {
   const [mounted, setMounted] = useState(false)
   const [settled, setSettled] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [footerVisible, setFooterVisible] = useState(false)
+  const footerRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const el = footerRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setFooterVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     let raf2 = 0
@@ -174,7 +192,7 @@ export default function Home() {
           <GlitchMasthead />
         </div>
         <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase', ...animStyle(200) }}>
-          {['Politics', 'Culture', 'Economics', 'Media', 'About'].map(item => (
+          {['Politics', 'Culture', 'Economics', 'Media', 'About', 'Submit'].map(item => (
             <Link key={item} href={`/${item.toLowerCase()}`} className="nav-link" data-text={item} style={{ textDecoration: 'none' }}>{item}</Link>
           ))}
         </nav>
@@ -272,6 +290,43 @@ export default function Home() {
           />
         </div>
       ))}
+
+      {/* Footer */}
+      <footer
+        ref={footerRef}
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          borderTop: '1px solid var(--color-border-strong)',
+          padding: '1.5rem 0',
+          opacity: footerVisible ? 1 : 0,
+          transform: footerVisible ? 'translateY(0)' : 'translateY(8px)',
+          transitionProperty: 'opacity, transform',
+          transitionDuration: '400ms',
+          transitionTimingFunction: 'ease-out',
+        }}
+      >
+        <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '24px', color: 'var(--color-text-primary)' }}>
+          2ND
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+          <nav style={{ display: 'flex', gap: '16px' }}>
+            {['Politics', 'Culture', 'Economics', 'Media', 'About', 'Submit'].map(item => (
+              <Link
+                key={item}
+                href={`/${item.toLowerCase()}`}
+                style={{ fontFamily: 'var(--font-grotesk)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-text-secondary)', textDecoration: 'none' }}
+              >
+                {item}
+              </Link>
+            ))}
+          </nav>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+            © 2ND 2026 · editorial.2nd@gmail.com
+          </div>
+        </div>
+      </footer>
 
     </main>
   )
