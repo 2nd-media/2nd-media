@@ -11,6 +11,10 @@ const PAD_Y = 24
 const TEAR_LIGHT = '#ffffff'
 const TEAR_DARK = '#444444'
 
+function currentTextColor() {
+  return getComputedStyle(document.documentElement).getPropertyValue('--color-text-primary').trim() || '#0a0a0a'
+}
+
 export default function GlitchMasthead() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const offscreenRef = useRef<HTMLCanvasElement | null>(null)
@@ -66,19 +70,11 @@ export default function GlitchMasthead() {
       offscreen.width = width * dpr
       offscreen.height = height * dpr
       const offCtx = offscreen.getContext('2d')
-      if (offCtx) {
-        offCtx.scale(dpr, dpr)
-        offCtx.clearRect(0, 0, width, height)
-        offCtx.fillStyle = '#0a0a0a'
-        offCtx.font = FONT
-        offCtx.textBaseline = 'middle'
-        offCtx.textAlign = 'left'
-        offCtx.fillText(TEXT, PAD_X, height / 2)
-      }
+      if (offCtx) offCtx.scale(dpr, dpr)
       offscreenRef.current = offscreen
       tmpRef.current = document.createElement('canvas')
 
-      drawClean()
+      redrawOffscreen()
       startGlitch()
     }
 
@@ -89,6 +85,28 @@ export default function GlitchMasthead() {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
     }
   }, [])
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      redrawOffscreen()
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => observer.disconnect()
+  }, [])
+
+  function redrawOffscreen() {
+    const offscreen = offscreenRef.current
+    const offCtx = offscreen?.getContext('2d')
+    if (!offscreen || !offCtx) return
+    const { width, height } = dimsRef.current
+    offCtx.clearRect(0, 0, width, height)
+    offCtx.fillStyle = currentTextColor()
+    offCtx.font = FONT
+    offCtx.textBaseline = 'middle'
+    offCtx.textAlign = 'left'
+    offCtx.fillText(TEXT, PAD_X, height / 2)
+    if (!runningRef.current) drawClean()
+  }
 
   function drawClean() {
     const canvas = canvasRef.current

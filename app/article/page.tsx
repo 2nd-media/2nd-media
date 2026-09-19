@@ -29,7 +29,7 @@ export default function Article() {
           <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '13px', color: '#0a0a0a' }}>
             The New York Times
           </span>
-          <span style={{ fontFamily: 'var(--font-lora)', fontSize: '14px', fontStyle: 'italic', color: '#666', display: 'block', marginTop: '5px' }}>
+          <span style={{ fontFamily: 'var(--font-spectral)', fontSize: '14px', fontStyle: 'italic', color: '#666', display: 'block', marginTop: '5px' }}>
             &ldquo;The Economy Is Fine. So Why Does Everyone Feel Terrible?&rdquo;
           </span>
         </div>
@@ -40,7 +40,7 @@ export default function Article() {
         </h1>
 
         {/* Deck */}
-        <p style={{ fontFamily: 'var(--font-lora)', fontSize: '19px', lineHeight: 1.6, color: '#444', fontStyle: 'italic', marginTop: '0.9rem' }}>
+        <p style={{ fontFamily: 'var(--font-spectral)', fontSize: '19px', lineHeight: 1.6, color: '#444', marginTop: '0.9rem' }}>
           Dismissing consumer pessimism as irrational misses what the data is actually measuring — and who it&apos;s measuring it for.
         </p>
 
@@ -53,7 +53,7 @@ export default function Article() {
         <div style={{ borderBottom: '1px solid #0a0a0a', marginTop: '1.5rem', marginBottom: '2rem' }} />
 
         {/* Body */}
-        <div style={{ fontFamily: 'var(--font-lora)', fontSize: '18px', lineHeight: 1.85, color: '#1a1a1a' }}>
+        <div style={{ fontFamily: 'var(--font-spectral)', fontSize: '18px', lineHeight: 1.85, color: '#1a1a1a' }}>
           <p style={{ marginBottom: '1.5rem' }}>
             For the better part of two years, the same chart has made the rounds in every economics newsletter: unemployment low, inflation cooling, wages up in real terms — and consumer sentiment stuck in the basement. The instinct among a certain kind of commentator is to treat this gap as a puzzle to be explained away, a matter of vibes and media diet and doomscrolling, rather than a signal that the aggregate numbers are failing to capture something real.
           </p>

@@ -3,6 +3,8 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import GlitchMasthead from './components/GlitchMasthead'
+import ScrambleText from './components/ScrambleText'
+import WorldClocks from './components/WorldClocks'
 
 const articles = [
   {
@@ -84,6 +86,8 @@ const latestArticles = articles.filter(a => !a.featured)
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
+  const [settled, setSettled] = useState(false)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
     let raf2 = 0
@@ -96,7 +100,41 @@ export default function Home() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!mounted) return
+    // Longest entrance delay (latest feed, 1000ms) + its 500ms duration, plus a buffer.
+    const t = setTimeout(() => setSettled(true), 1800)
+    return () => clearTimeout(t)
+  }, [mounted])
+
+  useEffect(() => {
+    const stored = localStorage.getItem('theme')
+    if (stored === 'dark') {
+      // Syncing from localStorage (browser-only) after mount to avoid a server/client hydration mismatch.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTheme('dark')
+      document.documentElement.setAttribute('data-theme', 'dark')
+    }
+  }, [])
+
+  function toggleTheme() {
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark'
+      if (next === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark')
+      } else {
+        document.documentElement.removeAttribute('data-theme')
+      }
+      localStorage.setItem('theme', next)
+      return next
+    })
+  }
+
   function animStyle(delayMs: number): CSSProperties {
+    // Once the entrance has played out, stop declaring opacity/transform inline —
+    // an inline `transform` would otherwise permanently block the .article-card
+    // hover lift, since inline styles always win over a stylesheet's :hover rule.
+    if (settled) return {}
     return {
       opacity: mounted ? 1 : 0,
       transform: mounted ? 'translateY(0)' : 'translateY(20px)',
@@ -111,103 +149,127 @@ export default function Home() {
     <main style={{ paddingTop: '2rem', paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>
 
       {/* Masthead */}
-      <div style={{ borderBottom: '1px solid #0a0a0a', paddingBottom: '1.25rem', marginBottom: '0' }}>
+      <div style={{ position: 'relative', borderBottom: '1px solid var(--color-border-strong)', paddingBottom: '1.25rem', marginBottom: '0' }}>
+        <button
+          onClick={toggleTheme}
+          aria-label="Toggle dark mode"
+          style={{ position: 'absolute', top: 0, right: 0, zIndex: 1, width: '44px', height: '24px', padding: 0, margin: 0, border: '1px solid var(--color-border)', borderRadius: '999px', background: 'var(--color-border)', cursor: 'pointer', transition: 'background 200ms ease-out' }}
+        >
+          <span
+            style={{
+              display: 'block',
+              position: 'absolute',
+              top: '2px',
+              left: '2px',
+              width: '18px',
+              height: '18px',
+              borderRadius: '50%',
+              background: 'var(--color-text-primary)',
+              transition: 'transform 200ms ease-out',
+              transform: theme === 'dark' ? 'translateX(20px)' : 'translateX(0)',
+            }}
+          />
+        </button>
         <div style={{ display: 'flex', justifyContent: 'center', ...animStyle(0) }}>
           <GlitchMasthead />
         </div>
-        <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '11px', color: '#666', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase', ...animStyle(200) }}>
+        <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase', ...animStyle(200) }}>
           {['Politics', 'Culture', 'Economics', 'Media', 'About'].map(item => (
-            <Link key={item} href={`/${item.toLowerCase()}`} className="nav-link" data-text={item} style={{ color: '#666', textDecoration: 'none' }}>{item}</Link>
+            <Link key={item} href={`/${item.toLowerCase()}`} className="nav-link" data-text={item} style={{ textDecoration: 'none' }}>{item}</Link>
           ))}
         </nav>
       </div>
 
       {/* Dateline */}
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '0.6rem 0', borderBottom: '0.5px solid #e0e0e0', ...animStyle(400) }}>
-        Friday, September 18, 2026
-      </div>
+      <WorldClocks />
 
       {/* Featured Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', padding: '1.75rem 0', borderBottom: '0.5px solid #e0e0e0', ...animStyle(600) }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', padding: '1.75rem 0', borderBottom: '0.5px solid var(--color-border)', ...animStyle(600) }}>
 
         {/* Main featured */}
-        <div style={{ borderRight: '0.5px solid #e0e0e0', paddingRight: '2rem', ...animStyle(600) }}>
+        <div className="article-card" style={{ borderRight: '0.5px solid var(--color-border)', paddingRight: '2rem', ...animStyle(600) }}>
           <div>
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0a0a0a' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '12px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-primary)' }}>
               {featuredArticles[0].irtLabel}&nbsp;&nbsp;
             </span>
-            <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '11px', color: '#0a0a0a' }}>
+            <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '13px', color: 'var(--color-text-primary)' }}>
               {featuredArticles[0].irtTarget}
             </span>
-            <span style={{ fontFamily: 'var(--font-lora)', fontSize: '12px', fontStyle: 'italic', color: '#666', display: 'block', marginTop: '3px' }}>
+            <span style={{ fontFamily: 'var(--font-spectral)', fontSize: '14px', fontStyle: 'italic', color: 'var(--color-text-secondary)', display: 'block', marginTop: '3px' }}>
               {featuredArticles[0].irtOriginal}
             </span>
           </div>
-          <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '26px', lineHeight: 1.1, color: '#0a0a0a', marginTop: '0.6rem' }}>
+          <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '32px', lineHeight: 1.1, color: 'var(--color-text-primary)', marginTop: '0.6rem' }}>
             {featuredArticles[0].headline}
           </div>
-          <div style={{ fontFamily: 'var(--font-lora)', fontSize: '15px', lineHeight: 1.65, color: '#444', fontStyle: 'italic', marginTop: '0.4rem' }}>
+          <div style={{ fontFamily: 'var(--font-spectral)', fontSize: '17px', lineHeight: 1.65, color: 'var(--color-text-secondary)', marginTop: '0.4rem' }}>
             {featuredArticles[0].deck}
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', marginTop: '0.6rem' }}>
-            {featuredArticles[0].author} &nbsp;·&nbsp; {featuredArticles[0].date} &nbsp;·&nbsp; {featuredArticles[0].category}
-          </div>
+          <ScrambleText
+            text={`${featuredArticles[0].author} · ${featuredArticles[0].date} · ${featuredArticles[0].category}`}
+            delay={600 + 400}
+            style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '0.6rem' }}
+          />
         </div>
 
         {/* Secondary featured */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {featuredArticles.slice(1).map((article, i) => (
-            <div key={article.id} style={{ paddingBottom: '1.5rem', borderBottom: i < featuredArticles.slice(1).length - 1 ? '0.5px solid #e0e0e0' : 'none', ...animStyle(600 + (i + 1) * 100) }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0a0a0a' }}>
+            <div key={article.id} className="article-card" style={{ paddingBottom: '1.5rem', borderBottom: i < featuredArticles.slice(1).length - 1 ? '0.5px solid var(--color-border)' : 'none', ...animStyle(600 + (i + 1) * 100) }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '12px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-primary)' }}>
                 {article.irtLabel}&nbsp;&nbsp;
               </span>
-              <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '11px', color: '#0a0a0a' }}>
+              <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '13px', color: 'var(--color-text-primary)' }}>
                 {article.irtTarget}
               </span>
-              <span style={{ fontFamily: 'var(--font-lora)', fontSize: '12px', fontStyle: 'italic', color: '#666', display: 'block', marginTop: '3px' }}>
+              <span style={{ fontFamily: 'var(--font-spectral)', fontSize: '14px', fontStyle: 'italic', color: 'var(--color-text-secondary)', display: 'block', marginTop: '3px' }}>
                 {article.irtOriginal}
               </span>
-              <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '17px', lineHeight: 1.1, color: '#0a0a0a', marginTop: '0.5rem' }}>
+              <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '21px', lineHeight: 1.1, color: 'var(--color-text-primary)', marginTop: '0.5rem' }}>
                 {article.headline}
               </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', marginTop: '0.5rem' }}>
-                {article.author} &nbsp;·&nbsp; {article.date}
-              </div>
+              <ScrambleText
+                text={`${article.author} · ${article.date}`}
+                delay={600 + (i + 1) * 100 + 400}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}
+              />
             </div>
           ))}
         </div>
       </div>
 
       {/* Latest divider */}
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0.6rem 0', borderBottom: '0.5px solid #e0e0e0', ...animStyle(700) }}>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0.6rem 0', borderBottom: '0.5px solid var(--color-border)', ...animStyle(700) }}>
         Latest
       </div>
 
       {/* Latest feed */}
       {latestArticles.map((article, i) => (
-        <div key={article.id} style={{ padding: '1.75rem 0', borderBottom: '0.5px solid #e0e0e0', ...animStyle(800 + i * 100) }}>
+        <div key={article.id} className="article-card" style={{ padding: '1.75rem 0', borderBottom: '0.5px solid var(--color-border)', ...animStyle(800 + i * 100) }}>
           <div>
-            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#0a0a0a' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '12px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--color-text-primary)' }}>
               {article.irtLabel}&nbsp;&nbsp;
             </span>
-            <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '11px', color: '#0a0a0a' }}>
+            <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '13px', color: 'var(--color-text-primary)' }}>
               {article.irtTarget}
             </span>
-            <span style={{ fontFamily: 'var(--font-lora)', fontSize: '12px', fontStyle: 'italic', color: '#666', display: 'block', marginTop: '3px' }}>
+            <span style={{ fontFamily: 'var(--font-spectral)', fontSize: '14px', fontStyle: 'italic', color: 'var(--color-text-secondary)', display: 'block', marginTop: '3px' }}>
               {article.irtOriginal}
             </span>
           </div>
-          <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '20px', lineHeight: 1.1, color: '#0a0a0a', marginTop: '0.6rem' }}>
+          <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: '24px', lineHeight: 1.1, color: 'var(--color-text-primary)', marginTop: '0.6rem' }}>
             {article.headline}
           </div>
           {article.deck && (
-            <div style={{ fontFamily: 'var(--font-lora)', fontSize: '14px', lineHeight: 1.65, color: '#444', fontStyle: 'italic', marginTop: '0.4rem' }}>
+            <div style={{ fontFamily: 'var(--font-spectral)', fontSize: '17px', lineHeight: 1.65, color: 'var(--color-text-secondary)', marginTop: '0.4rem' }}>
               {article.deck}
             </div>
           )}
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#999', marginTop: '0.6rem' }}>
-            {article.author} &nbsp;·&nbsp; {article.date} &nbsp;·&nbsp; {article.category}
-          </div>
+          <ScrambleText
+            text={`${article.author} · ${article.date} · ${article.category}`}
+            delay={800 + i * 100 + 400}
+            style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '0.6rem' }}
+          />
         </div>
       ))}
 
