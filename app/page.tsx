@@ -5,6 +5,9 @@ import Link from 'next/link'
 import GlitchMasthead from './components/GlitchMasthead'
 import ScrambleText from './components/ScrambleText'
 import WorldClocks from './components/WorldClocks'
+import { shouldAnimateEntrance } from './lib/sessionEntrance'
+
+const LAUNCHED = false
 
 const articles = [
   {
@@ -85,6 +88,10 @@ const featuredArticles = articles.filter(a => a.featured)
 const latestArticles = articles.filter(a => !a.featured)
 
 export default function Home() {
+  // Only play the entrance sequence the first time this page appears in the
+  // browser tab — revisiting via client-side navigation shouldn't replay it,
+  // only a genuine first load / hard reload should.
+  const [animate] = useState(() => shouldAnimateEntrance('home'))
   const [mounted, setMounted] = useState(false)
   const [settled, setSettled] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
@@ -108,6 +115,7 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
+    if (!animate) return
     let raf2 = 0
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => setMounted(true))
@@ -116,7 +124,7 @@ export default function Home() {
       cancelAnimationFrame(raf1)
       if (raf2) cancelAnimationFrame(raf2)
     }
-  }, [])
+  }, [animate])
 
   useEffect(() => {
     if (!mounted) return
@@ -152,7 +160,7 @@ export default function Home() {
     // Once the entrance has played out, stop declaring opacity/transform inline —
     // an inline `transform` would otherwise permanently block the .article-card
     // hover lift, since inline styles always win over a stylesheet's :hover rule.
-    if (settled) return {}
+    if (!animate || settled) return {}
     return {
       opacity: mounted ? 1 : 0,
       transform: mounted ? 'translateY(0)' : 'translateY(20px)',
@@ -188,12 +196,21 @@ export default function Home() {
             }}
           />
         </button>
-        <div style={{ display: 'flex', justifyContent: 'center', ...animStyle(0) }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
           <GlitchMasthead />
         </div>
-        <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase', ...animStyle(200) }}>
-          {['Politics', 'Culture', 'Economics', 'Media', 'About', 'Submit'].map(item => (
-            <Link key={item} href={`/${item.toLowerCase()}`} className="nav-link" data-text={item} style={{ textDecoration: 'none' }}>{item}</Link>
+        <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px' }}>
+          {['Politics', 'Economics', 'Society', 'Media', 'Technology', 'Arts'].flatMap((item, i, arr) => {
+            const nodes = [<span key={item}>{item}</span>]
+            if (i < arr.length - 1) {
+              nodes.push(<span key={`${item}-sep`} style={{ color: 'var(--color-text-muted)' }}>|</span>)
+            }
+            return nodes
+          })}
+        </div>
+        <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          {['About', 'Submit'].map(item => (
+            <Link key={item} href={`/${item.toLowerCase()}`} className="nav-link" data-text={item} style={{ textDecoration: 'none', cursor: 'pointer' }}>{item}</Link>
           ))}
         </nav>
       </div>
@@ -201,6 +218,8 @@ export default function Home() {
       {/* Dateline */}
       <WorldClocks />
 
+      {LAUNCHED ? (
+      <>
       {/* Featured Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', padding: '1.75rem 0', borderBottom: '0.5px solid var(--color-border)', ...animStyle(600) }}>
 
@@ -290,8 +309,20 @@ export default function Home() {
           />
         </div>
       ))}
+      </>
+      ) : (
+        <div style={{ textAlign: 'center', marginTop: '6rem' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.18em', color: 'var(--color-text-muted)', ...animStyle(600) }}>
+            In Response To
+          </div>
+          <div style={{ fontFamily: 'var(--font-spectral)', fontStyle: 'italic', fontSize: '32px', color: 'var(--color-text-primary)', marginTop: '0.75rem', ...animStyle(800) }}>
+            Coming Soon.
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
+      {LAUNCHED && (
       <footer
         ref={footerRef}
         style={{
@@ -322,11 +353,20 @@ export default function Home() {
               </Link>
             ))}
           </nav>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-            © 2ND 2026 · editorial.2nd@gmail.com
-          </div>
+          {animate ? (
+            <ScrambleText
+              text="© 2ND 2026 · editorial.2nd@gmail.com"
+              delay={300}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}
+            />
+          ) : (
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+              © 2ND 2026 · editorial.2nd@gmail.com
+            </div>
+          )}
         </div>
       </footer>
+      )}
 
     </main>
   )

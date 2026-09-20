@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import Link from 'next/link'
 import GlitchMasthead from '../components/GlitchMasthead'
+import ScrambleText from '../components/ScrambleText'
 import WorldClocks from '../components/WorldClocks'
+import { shouldAnimateEntrance } from '../lib/sessionEntrance'
+
+const LAUNCHED = false
 
 const headlineStyle: CSSProperties = {
   fontFamily: 'var(--font-grotesk)',
@@ -32,7 +36,31 @@ const irtStyle: CSSProperties = {
 export default function About() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [footerVisible, setFooterVisible] = useState(false)
+  // Only play the entrance sequence the first time this page appears in the
+  // browser tab — revisiting via client-side navigation shouldn't replay it,
+  // only a genuine first load / hard reload should.
+  const [animate] = useState(() => shouldAnimateEntrance('about'))
+  const [mounted, setMounted] = useState(false)
+  const [settled, setSettled] = useState(false)
   const footerRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    if (!animate) return
+    let raf2 = 0
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setMounted(true))
+    })
+    return () => {
+      cancelAnimationFrame(raf1)
+      if (raf2) cancelAnimationFrame(raf2)
+    }
+  }, [animate])
+
+  useEffect(() => {
+    if (!mounted) return
+    const t = setTimeout(() => setSettled(true), 1800)
+    return () => clearTimeout(t)
+  }, [mounted])
 
   useEffect(() => {
     const stored = localStorage.getItem('theme')
@@ -73,11 +101,36 @@ export default function About() {
     })
   }
 
+  function animStyle(delayMs: number): CSSProperties {
+    if (!animate || settled) return {}
+    return {
+      opacity: mounted ? 1 : 0,
+      transform: mounted ? 'translateY(0)' : 'translateY(20px)',
+      transitionProperty: 'opacity, transform',
+      transitionDuration: '500ms',
+      transitionTimingFunction: 'ease-out',
+      transitionDelay: `${delayMs}ms`,
+    }
+  }
+
+  // For horizontal rule lines: grow outward from the center instead of fading.
+  function lineStyle(delayMs: number): CSSProperties {
+    if (!animate || settled) return {}
+    return {
+      transform: mounted ? 'scaleX(1)' : 'scaleX(0)',
+      transformOrigin: 'center',
+      transitionProperty: 'transform',
+      transitionDuration: '500ms',
+      transitionTimingFunction: 'ease-out',
+      transitionDelay: `${delayMs}ms`,
+    }
+  }
+
   return (
     <main style={{ paddingTop: '2rem', paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>
 
       {/* Masthead */}
-      <div style={{ position: 'relative', borderBottom: '1px solid var(--color-border-strong)', paddingBottom: '1.25rem', marginBottom: '0' }}>
+      <div style={{ position: 'relative', paddingBottom: '1.25rem', marginBottom: '0' }}>
         <button
           onClick={toggleTheme}
           aria-label="Toggle dark mode"
@@ -98,15 +151,37 @@ export default function About() {
             }}
           />
         </button>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', ...animStyle(0) }}>
           <GlitchMasthead />
         </div>
-        <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-          {['Politics', 'Culture', 'Economics', 'Media', 'About', 'Submit'].map(item => (
-            <Link key={item} href={`/${item.toLowerCase()}`} className="nav-link" data-text={item} style={{ textDecoration: 'none' }}>{item}</Link>
-          ))}
-        </nav>
+        {LAUNCHED ? (
+          <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            {['Politics', 'Culture', 'Economics', 'Media', 'About', 'Submit'].map(item => (
+              <Link key={item} href={`/${item.toLowerCase()}`} className="nav-link" data-text={item} style={{ textDecoration: 'none' }}>{item}</Link>
+            ))}
+          </nav>
+        ) : (
+          <>
+            <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', ...animStyle(200) }}>
+              {['Politics', 'Economics', 'Society', 'Media', 'Technology', 'Arts'].flatMap((item, i, arr) => {
+                const nodes = [<span key={item}>{item}</span>]
+                if (i < arr.length - 1) {
+                  nodes.push(<span key={`${item}-sep`} style={{ color: 'var(--color-text-muted)' }}>|</span>)
+                }
+                return nodes
+              })}
+            </div>
+            <nav style={{ fontFamily: 'var(--font-grotesk)', fontSize: '13px', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px', letterSpacing: '0.06em', textTransform: 'uppercase', ...animStyle(300) }}>
+              {['About', 'Submit'].map(item => (
+                <Link key={item} href={`/${item.toLowerCase()}`} className="nav-link" data-text={item} style={{ textDecoration: 'none', cursor: 'pointer' }}>{item}</Link>
+              ))}
+            </nav>
+          </>
+        )}
       </div>
+
+      {/* Header divider */}
+      <div style={{ borderBottom: '1px solid var(--color-border-strong)', ...lineStyle(350) }} />
 
       {/* Dateline */}
       <WorldClocks />
@@ -114,33 +189,47 @@ export default function About() {
       {/* About content */}
       <div style={{ maxWidth: '640px', margin: '0 auto', paddingTop: '3rem' }}>
 
-        <h1 style={headlineStyle}>What 2ND Is</h1>
-        <p style={bodyStyle}>
-          2ND is a second-order journalism publication. Every piece begins by identifying a specific article, argument, report, speech, or public claim already shaping discourse. Authors are then invited to respond critically, rigorously, and without predetermined conclusions. 2ND does not employ a newsroom or staff editors. It functions as an institutional public forum for second-order thought and criticism.
-        </p>
-        <p style={bodyStyle}>
-          Our <span style={irtStyle}>In Response To</span> column is the editorial signature of this publication and a commitment to intellectual transparency: what we are responding to, why it matters, and what we think is missing, wrong, or worth complicating.
-        </p>
-        <p style={bodyStyle}>
-          A response may ultimately agree with the original piece. Intellectual honesty and sound reasoning are always more important than aimless opposition.
-        </p>
+        <div style={animStyle(600)}>
+          <h1 style={headlineStyle}>What 2ND Is</h1>
+          <p style={bodyStyle}>
+            2ND is a second-order journalism publication. Every piece begins by identifying a specific article, argument, report, speech, or public claim already shaping discourse. Authors are then invited to respond critically, rigorously, and without predetermined conclusions. 2ND does not employ a newsroom or staff editors. It functions as an institutional public forum for second-order thought and criticism.
+          </p>
+          <p style={bodyStyle}>
+            Our <span style={irtStyle}>In Response To</span> column is the editorial signature of this publication and a commitment to intellectual transparency: what we are responding to, why it matters, and what we think is missing, wrong, or worth complicating.
+          </p>
+          <p style={bodyStyle}>
+            A response may ultimately agree with the original piece. Intellectual honesty and sound reasoning are always more important than aimless opposition.
+          </p>
+        </div>
 
-        <h2 style={{ ...headlineStyle, marginTop: '3rem' }}>What 2ND Is Not</h2>
-        <p style={bodyStyle}>
-          2ND is not a fact-checking operation. It is not a contrarian publication. It has no ideological voice. The target is weak reasoning, missing context, sensationalism, and unexamined assumptions, wherever they appear and whoever is responsible for them.
-        </p>
-        <p style={bodyStyle}>
-          2ND is not a platform. It is a publication with editorial standards, a consistent format, and a point of view about how journalism should be approached, made, and read.
-        </p>
+        <div style={{ marginTop: '3rem', ...animStyle(700) }}>
+          <h2 style={headlineStyle}>What 2ND Is Not</h2>
+          <p style={bodyStyle}>
+            2ND is not a fact-checking operation. It is not a contrarian publication. It has no ideological voice. The target is weak reasoning, missing context, sensationalism, and unexamined assumptions, wherever they appear and whoever is responsible for them.
+          </p>
+          <p style={bodyStyle}>
+            2ND is not a platform. It is a publication with editorial standards, a consistent format, and a point of view about how journalism should be approached, made, and read.
+          </p>
+        </div>
 
-        <h2 style={{ ...headlineStyle, marginTop: '3rem' }}>Why</h2>
-        <p style={bodyStyle}>
-          The current media environment rewards quantity over quality and rapid first takes over meaningful second thoughts. 2ND exists because no story should have the final say.
-        </p>
+        <div style={{ marginTop: '3rem', ...animStyle(800) }}>
+          <h2 style={headlineStyle}>Why</h2>
+          <p style={bodyStyle}>
+            The current media environment rewards quantity over quality and rapid first takes over meaningful second thoughts. 2ND exists because no story should have the final say.
+          </p>
+        </div>
 
-        <p style={{ fontFamily: 'var(--font-spectral)', fontSize: '15px', fontStyle: 'italic', color: 'var(--color-text-secondary)', marginTop: '1.5rem' }}>
-          Founded in the United States, for the United States. 2026.
-        </p>
+        {animate ? (
+          <ScrambleText
+            text="Founded in the United States, for the United States. 2026."
+            delay={1200}
+            style={{ fontFamily: 'var(--font-spectral)', fontSize: '15px', fontStyle: 'italic', color: 'var(--color-text-secondary)', marginTop: '1.5rem' }}
+          />
+        ) : (
+          <p style={{ fontFamily: 'var(--font-spectral)', fontSize: '15px', fontStyle: 'italic', color: 'var(--color-text-secondary)', marginTop: '1.5rem' }}>
+            Founded in the United States, for the United States. 2026.
+          </p>
+        )}
 
       </div>
 
@@ -166,7 +255,7 @@ export default function About() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           <nav style={{ display: 'flex', gap: '16px' }}>
-            {['Politics', 'Culture', 'Economics', 'Media', 'About', 'Submit'].map(item => (
+            {['About', 'Submit'].map(item => (
               <Link
                 key={item}
                 href={`/${item.toLowerCase()}`}
@@ -176,9 +265,17 @@ export default function About() {
               </Link>
             ))}
           </nav>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-            © 2ND 2026 · editorial.2nd@gmail.com
-          </div>
+          {animate ? (
+            <ScrambleText
+              text="© 2ND 2026 · editorial.2nd@gmail.com"
+              delay={300}
+              style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}
+            />
+          ) : (
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+              © 2ND 2026 · editorial.2nd@gmail.com
+            </div>
+          )}
         </div>
       </footer>
 

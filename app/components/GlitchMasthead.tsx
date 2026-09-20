@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type MouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import { shouldAnimateEntrance } from '../lib/sessionEntrance'
 
 const TEXT = '2ND'
 const FONT = '700 72px "Space Grotesk", sans-serif'
@@ -75,7 +76,13 @@ export default function GlitchMasthead() {
       tmpRef.current = document.createElement('canvas')
 
       redrawOffscreen()
-      startGlitch()
+      // Only auto-play the on-load glitch the first time this widget appears
+      // in the browser tab — revisiting via client-side navigation shouldn't
+      // replay it, only a genuine first load / hard reload should. Hovering
+      // or clicking the canvas can still always trigger it (see below).
+      if (shouldAnimateEntrance('glitchmasthead')) {
+        startGlitch()
+      }
     }
 
     setup()

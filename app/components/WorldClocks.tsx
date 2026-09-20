@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import ScrambleText from './ScrambleText'
+import { shouldAnimateEntrance } from '../lib/sessionEntrance'
 
 const ZONES = [
   { label: 'PACIFIC', shortLabel: 'PT', timeZone: 'America/Los_Angeles' },
@@ -61,6 +63,10 @@ export default function WorldClocks() {
   const [msDigits, setMsDigits] = useState<string[]>(() => ZONES.map(() => '000'))
   const [isNarrow, setIsNarrow] = useState(false)
   const [isCompact, setIsCompact] = useState(false)
+  // Only scramble the first time this widget appears in the browser tab —
+  // revisiting via client-side navigation shouldn't replay it, only a
+  // genuine first load / hard reload should.
+  const [animate] = useState(() => shouldAnimateEntrance('worldclocks'))
 
   useEffect(() => {
     const narrowMql = window.matchMedia(`(max-width: ${NARROW_BREAKPOINT_PX}px)`)
@@ -105,9 +111,17 @@ export default function WorldClocks() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.6rem 0', borderBottom: '0.5px solid var(--color-border)' }}>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
-        {now ? formatReferenceDate(now) : ' '}
-      </div>
+      {animate ? (
+        <ScrambleText
+          text={now ? formatReferenceDate(now) : ''}
+          delay={200}
+          style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}
+        />
+      ) : (
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
+          {now ? formatReferenceDate(now) : ' '}
+        </div>
+      )}
       <div style={{ display: 'flex', flexWrap: 'nowrap', justifyContent: 'center', gap: isCompact ? '0.4rem' : 'clamp(0.75rem, 3vw, 1.5rem)', marginTop: '0.4rem' }}>
         {ZONES.map((zone, i) => (
           <div
@@ -129,9 +143,17 @@ export default function WorldClocks() {
                 .{msDigits[i]}
               </span>
             )}
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(7px, 1vw, 9px)', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
-              {isNarrow ? zone.shortLabel : zone.label}
-            </span>
+            {animate ? (
+              <ScrambleText
+                text={isNarrow ? zone.shortLabel : zone.label}
+                delay={300 + i * 50}
+                style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(7px, 1vw, 9px)', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}
+              />
+            ) : (
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(7px, 1vw, 9px)', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
+                {isNarrow ? zone.shortLabel : zone.label}
+              </div>
+            )}
           </div>
         ))}
       </div>
