@@ -139,7 +139,7 @@ export default function About() {
         </p>
 
         <p style={{ fontFamily: 'var(--font-spectral)', fontSize: '15px', fontStyle: 'italic', color: 'var(--color-text-secondary)', marginTop: '1.5rem' }}>
-          Founded in California, for America. 2026.
+          Founded in the United States, for the United States. 2026.
         </p>
 
       </div>
