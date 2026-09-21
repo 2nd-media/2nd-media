@@ -199,7 +199,7 @@ export default function Home() {
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <GlitchMasthead />
         </div>
-        <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 500, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-text-secondary)', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '10px' }}>
+        <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 500, fontSize: 'clamp(7px, 2.4vw, 13px)', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-text-secondary)', display: 'flex', flexWrap: 'nowrap', justifyContent: 'center', gap: 'clamp(4px, 1.6vw, 20px)', marginTop: '10px' }}>
           {['Politics', 'Economics', 'Society', 'Media', 'Technology', 'Arts'].flatMap((item, i, arr) => {
             const nodes = [<span key={item}>{item}</span>]
             if (i < arr.length - 1) {
