@@ -96,7 +96,16 @@ export default function Home() {
   const [settled, setSettled] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [footerVisible, setFooterVisible] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const footerRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 640px)')
+    const update = () => setIsMobile(mql.matches)
+    update()
+    mql.addEventListener('change', update)
+    return () => mql.removeEventListener('change', update)
+  }, [])
 
   useEffect(() => {
     const el = footerRef.current
@@ -172,7 +181,10 @@ export default function Home() {
   }
 
   return (
-    <main style={{ paddingTop: '2rem', paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>
+    <main style={{ paddingTop: '2rem' }}>
+
+      {/* Header section — edge to edge on mobile, padded on desktop */}
+      <div style={{ paddingLeft: isMobile ? 0 : '2.5rem', paddingRight: isMobile ? 0 : '2.5rem' }}>
 
       {/* Masthead */}
       <div style={{ position: 'relative', borderBottom: '1px solid var(--color-border-strong)', paddingBottom: '1.25rem', marginBottom: '0' }}>
@@ -217,6 +229,11 @@ export default function Home() {
 
       {/* Dateline */}
       <WorldClocks />
+
+      </div>
+
+      {/* Everything below WorldClocks keeps the standard padding on all screens */}
+      <div style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>
 
       {LAUNCHED ? (
       <>
@@ -367,6 +384,8 @@ export default function Home() {
         </div>
       </footer>
       )}
+
+      </div>
 
     </main>
   )

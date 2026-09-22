@@ -36,6 +36,7 @@ const irtStyle: CSSProperties = {
 export default function About() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [footerVisible, setFooterVisible] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   // Only play the entrance sequence the first time this page appears in the
   // browser tab — revisiting via client-side navigation shouldn't replay it,
   // only a genuine first load / hard reload should.
@@ -43,6 +44,14 @@ export default function About() {
   const [mounted, setMounted] = useState(false)
   const [settled, setSettled] = useState(false)
   const footerRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 640px)')
+    const update = () => setIsMobile(mql.matches)
+    update()
+    mql.addEventListener('change', update)
+    return () => mql.removeEventListener('change', update)
+  }, [])
 
   useEffect(() => {
     if (!animate) return
@@ -127,7 +136,10 @@ export default function About() {
   }
 
   return (
-    <main style={{ paddingTop: '2rem', paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>
+    <main style={{ paddingTop: '2rem' }}>
+
+      {/* Header section — edge to edge on mobile, padded on desktop */}
+      <div style={{ paddingLeft: isMobile ? 0 : '2.5rem', paddingRight: isMobile ? 0 : '2.5rem' }}>
 
       {/* Masthead */}
       <div style={{ position: 'relative', paddingBottom: '1.25rem', marginBottom: '0' }}>
@@ -185,6 +197,11 @@ export default function About() {
 
       {/* Dateline */}
       <WorldClocks />
+
+      </div>
+
+      {/* Everything below WorldClocks keeps the standard padding on all screens */}
+      <div style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}>
 
       {/* About content */}
       <div style={{ maxWidth: '640px', margin: '0 auto', paddingTop: '3rem' }}>
@@ -278,6 +295,8 @@ export default function About() {
           )}
         </div>
       </footer>
+
+      </div>
 
     </main>
   )
